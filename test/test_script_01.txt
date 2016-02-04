@@ -1,0 +1,11 @@
+north
+east
+south
+south
+west
+west
+north
+north
+east
+south
+beta

@@ -1,0 +1,10 @@
+This repo is just to share my solution to a coding challenge. See notes.txt for long form prose about the solution.
+
+This code requires java 1.8.
+
+To compile the code:
+javac *.java
+
+To run the code
+java Simulate <field file> <script file>
+

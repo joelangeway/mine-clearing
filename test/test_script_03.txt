@@ -1,0 +1,8 @@
+west
+west
+alpha east
+east
+east
+east
+east
+alpha

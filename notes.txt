@@ -1,0 +1,40 @@
+2016-02-04 8:25AM
+
+Read the problem for the first time yesterday afternoon. Just read it again. No code written.
+
+The initial representation of the field is two dimensional. Mines can't move, they can only be destroyed, and when they are destroyed, all mines "below" at the same X,Y coordinates are destroyed. Only the "top most" mine is significant, because the simulation ends if the top most mine is passed without being destroyed. All X,Y coordinates are integral. The mine field could be represented by a two dimensional array where each element records the distance to the ship in the Z dimension or the lack of a mine at that X,Y coordinate. 
+
+The initial width and height of the grid is implied by the length and count of lines of text in the field file. This format seems human accessible and so we'll want to check for human errors. The problem specification states that the ship is assumed to start in the middle of the grid. If either the width or height is even we shall give a warning that we're rounding down.
+
+I will assume that it is acceptable to print warning messages to stderr.
+
+The problem spec is inconsistent about north and south. Under the miscellaneous section, an example field is shown where mines differ in both the x and y coordinates and the positive y direction corresponds to printing lower on the screen, but in the next example field, where the ship has supposedly moved north, the mines have in fact moved down as though north corresponded to up on the page, when before it corresponded to down. I will assume that north corresponds to the negative y direction and up on the screen since the output never includes numeric coordinates and every human generally wants north to mean up.
+
+The script file makes lines significant, one time step per line, but specifies that whitespace between verbs is arbitrary within the line. The ordering of verbs is not made explicit. I will assume that whitespace within a line can be ignored except as a separator and that verbs can come in any order so long as they do not conflict, that is they do not specify two moves or two firing patterns within a single timestep. This file is written by cadets and we do want to enforce some rigor, but we shouldn't do so without clear instructions.
+
+I assume that the ship must always fire before it moves within a timestep if it both fires and moves. It must take some amount of time to move, and if we wait until after we move to fire, we will be in the next timestep. 
+
+The state of the ship includes its X,Y coordinates. Because it "falls" downward in the Z dimension at a constant rate, it's Z position relative to its start could be derived from the time step index of the simulation. We might forgo recording the Z dimension of the ships position. We might also forgo representing the ships X,Y coordinates and simply "move" the minefield. No absolute X,Y coordinates are needed in the output. We would simply need to take care that no mines "fall off the edge" of the array.
+
+8:57AM 
+Starting to write some code. I will represent the minefield as a 2d array of integers where -1 means no mine and non-negative integers are the z-distance to a mine, and the ship is always at the center of that array. 
+
+
+10:29AM
+I've been at this for over an hour now and managing this rastered representation is clunky. Lots of methods scan over the array. Translating the X,Y positions of the mines about the ship while keeping the size of the space bounded is non-trivial. I'm going to start over with the obvious sparse representation, an object for each mine and one for the ship.
+
+12:08PM
+The sparse "object oriented" solution is much easier. Using Java 8 streams makes it much easier to be confident that code is correct (I've been stuck with java 1.7 for a while). There are no where near as many chances for off-by-one errors.
+
+I use a simple class called Coordinate that records x,y, and z positions. I use this class to represent each mine as well as the ship since the state of both of those types of objects consists entirely of their position in "space". 
+
+I use a simple class named SimulationState that contains a Coordinate for the ship and a list of Coordinates for the mines to represent almost all the state needed. All of the state changing events in our simulation, the ship falling, the ship moving, and firing, are implemented as methods on this class which return a new SimulationState. The necessary read operations, checking if any mines were missed, counting mines initially and to see if any remain, are also methods on this class. Time is not represented in this class because it was simple enough to organize procedurally outside of this class.
+
+When loading the field file, the code will print warnings to stderr if inconsistencies are found, but almost anything will generate some kind of valid initial SimulationState. I chose this because it was easier to implement and error handling seems much less important for the field file since students will have been working against it already by the time this tool is used.
+
+When loading the script, the code will abort if any syntax errors are found, reporting on each line which contained an error, but not more than once per line. The presence of unrecognized words, or attempts to move more than once or to fire more than once in a time step are counted as syntax errors. This seems important since students will make mistakes.
+
+I've assumed that input files are UTF-8 encoded. This is not always the default but always what I expect.
+
+I've assumed that lines in input files are broken by matches of this regex: /\n|\r\n|\r/ . That is the default behaviour of the Java sdk class I used.
+
